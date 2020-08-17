@@ -59,3 +59,49 @@ Docs.ansible.com
 ##### 8) I then used the same commands on the DB and AWS Virtual machines. SSh into the VM and use ```sudo apt-get update``` Once updated I then used exit to enter back into the OS. I now have updated all 3 VMS and they are all running
 
 ![](images/a8.png)
+
+# Creating the controller
+
+##### 1) SSH into the VM you would like to use as the controller. I will be using the AWS VM. So I used the command ```vagrant ssh aws```. Once inside the controller or the aws VM in my case install the following 
+```python
+sudo apt-get update
+```
+```python
+sudo apt-get install software-properties-common -y
+```
+```python
+sudo apt-add-repository --yes --update ppa:ansible/ansible
+```
+```python
+sudo apt-get install ansible
+```
+```python
+sudo apt-get install tree
+```
+
+##### 2) Once everything is installed we can go into the etc folder which is where ansible is installed. Once inside ansible I used tree command to display the files in a aesthetically pleasing manner.
+
+![](images/a9.png)
+
+##### 3) ```Ansible VM/IP -m ping``` is used to ping any VM you use. To ping all VMS use all. When trying to ssh into the web VM. It presents an error as we have not set the local hosts/IP adresses
+
+![](images/a10.png)
+
+##### 4) To solve this go into the hosts file using ```sudo nano hosts```
+
+![](images/a11.png)
+
+##### 5) Once inside I pasted the code:
+```
+[web]
+192.168.33.10 ansible_connection=ssh ansible_ssh_user=vagrant ansible_ssh_pass=vagrant
+ 
+[db]
+192.168.33.11 ansible_connection=ssh ansible_ssh_user=vagrant ansible_ssh_pass=vagrant
+ 
+[aws]
+192.168.33.12 ansible_connection=ssh ansible_ssh_user=vagrant ansible_ssh_pass=vagrant
+```
+
+You must change the IP address of each respective VM. This can be found in the vagrantfile
+
