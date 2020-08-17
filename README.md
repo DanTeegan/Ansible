@@ -105,3 +105,19 @@ sudo apt-get install tree
 
 You must change the IP address of each respective VM. This can be found in the vagrantfile
 
+![](images/a12.png)
+
+##### 6) I then SSH into the app using the IP address ```ssh vagrant@192.168.33.10``` If asked for a password type in vagrant. We are now inside the app VM. Note that i SSH into the app VM from the CONTROLER/aws VM
+
+![](images/a13.png)
+
+##### 7) I then used the command ```sudo apt-get update``` to install any updates. I also done this on the DB VM.I then exited the VM so I am back inside the controller VM
+
+![](images/a14.png)
+
+##### 8) Now in the controller when I enter the command ```ansible all -m ping``` I am presented with the following. This shows everything is working.
+
+![](images/a15.png)
+
+
+
