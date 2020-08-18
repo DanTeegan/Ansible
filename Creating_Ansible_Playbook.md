@@ -6,6 +6,11 @@
 - ansible all -a "df -h" # Checking disk space for all machines 
 - ansible all -a "mpstat -P all" # Checking all processes for all machines
 
+## Checking the syntax on your playbook.
+To check the syntax of your playbook you can use the command:
+```python
+ansible-playbook install_nginx_on_web.yml --check
+```
 ## What are they?
 - Automates to tasks in multiple servers
 - Playbooks are written in YMAL .ymal or .yml extention. YAML Syntax – YAML file starts with --- three dashes (---)
