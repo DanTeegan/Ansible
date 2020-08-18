@@ -1,4 +1,4 @@
 .idea
 venv/
 .vagrant
-
+app/node_modules/

@@ -1,4 +1,10 @@
 # Creating Ansible Playbook
+## Adhog commands
+- ansible all -m shell -a "ifconfig" finding ip address
+- ansible all -m shell -a "env" # find environment variables
+- ansible all -a "uptime" # checking uptime for all machines
+- ansible all -a "df -h" # Checking disk space for all machines 
+- ansible all -a "mpstat -P all" # Checking all processes for all machines
 
 ## What are they?
 - Automates to tasks in multiple servers
