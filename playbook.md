@@ -1,8 +1,47 @@
-# Playbook for app running on port 80
-
-```python
+```
 # This is a YAML file to install nginx onto oue web VM using YAML
 ---
+
+- hosts: db
+
+  gather_facts: yes
+
+  become: true
+
+  tasks:
+  - name: install mongodb
+    apt: pkg=mongodb state=present
+
+  - name: Remove mongodb file (delete file)
+    file:
+      path: /etc/mongodb.conf
+      state: absent
+
+  - name: Touch a file, using symbolic modes to set the permissions (equivalent to 0644)
+    file:
+      path: /etc/mongodb.conf
+      state: touch
+      mode: u=rw,g=r,o=r
+
+
+  - name: Insert multiple lines and Backup
+    blockinfile:
+      path: /etc/mongodb.conf
+      block: |
+        # mongodb.conf
+        storage:
+          dbPath: /var/lib/mongodb
+          journal:
+            enabled: true
+        systemLog:
+          destination: file
+          logAppend: true
+          path: /var/log/mongodb/mongod.log
+
+        net:
+          port: 27017
+          bindIp: 0.0.0.0
+
 
 # where do we want to install
 - hosts: web
@@ -19,33 +58,51 @@
   tasks:
   - name: Install nginx
     apt: pkg=nginx state=present
+    become_user: root
 
-  - name: nginx reverse proxy
-    shell:  |
-      sudo unlink /etc/nginx/sites-enabled/default
-      cd /etc/nginx/sites-available
-      sudo touch reverse-proxy.conf
-      sudo chmod 666 reverse-proxy.conf
-      echo "server{
-        listen 80;
-        server_name development.local;
-        location / {
-            proxy_pass http://127.0.0.1:3000/;
+  - name: Remove nginx deafault file (delete file)
+    file:
+      path: /etc/nginx/sites-enabled/default
+      state: absent
+
+  - name: Touch a file, using symbolic modes to set the permissions (equivalent to 0644)
+    file:
+      path: /etc/nginx/sites-enabled/reverseproxy.conf
+      state: touch
+      mode: '666'
+
+
+  - name: Insert multiple lines and Backup
+    blockinfile:
+      path: /etc/nginx/sites-enabled/reverseproxy.conf
+      block: |
+        server{
+          listen 80;
+          server_name development.local;
+          location / {
+              proxy_pass http://127.0.0.1:3000;
+          }
         }
-      }" >> reverse-proxy.conf
-      sudo ln -s /etc/nginx/sites-available/reverse-proxy.conf /etc/nginx/sites-enabled/reverse-proxy.conf
-      sudo service nginx restart
 
+  - name: Create a symbolic link
+    file:
+      src: /etc/nginx/sites-enabled/reverseproxy.conf
+      dest: /etc/nginx/sites-available/reverseproxy.conf
+      state: link
 
+  - name: nginx bug workaround
+    shell: |
+      sudo mkdir /etc/systemd/system/nginx.service.d
+        printf "[Service]\nExecStartPost=/bin/sleep 0.1\n" | \
+          sudo tee /etc/systemd/system/nginx.service.d/override.conf
+      sudo systemctl daemon-reload
+      sudo systemctl restart nginx
 
-# Installing nodejs
-  - name: Install Nodejs
+  - name: Install nodejs
     apt: pkg=nodejs state=present
 
-# Installing npm
-  - name: Install npm
+  - name: Install NPM
     apt: pkg=npm state=present
-
 
 # Downloading pm2
   - name: Install pm2
@@ -53,12 +110,22 @@
       name: pm2
       global: yes
 
-
-  - name:
+  - name: download latest npm
     shell: |
-      cd app
-      sudo npm install -g npm
+      npm install -g npm@latest
+      npm install mongoose -y
+
+
+  - name: set up app
+    shell: |
+      cd app/
       npm install
-      pm2 stop all
-      pm2 start app.js -f
+      node seeds/seed.js
+      pm2 kill
+      pm2 start app.js
+    environment:
+      DB_HOST: mongodb://vagrant@192.168.33.11:27017/posts?authSource=admin
+    become_user: root
+
+
 ```
