@@ -167,3 +167,10 @@ From here you can update your playbook to account for your database setup. My cu
 [Click here for my playbook
 ]( https://github.com/DanTeegan/Ansible/blob/master/playbook.md)
 
+One error I faced was setting the environment variable in the web VM through the ansible playbook. This error can be fixed with the following code
+```python
+   environment:
+      DB_HOST: mongodb://vagrant@192.168.33.11:27017/posts?authSource=admin
+    become_user: root
+
+```
