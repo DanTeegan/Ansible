@@ -141,3 +141,29 @@ vagrant up
 
 ![](images/a24.png)
 
+# Setting up the DB
+
+ Firstly you sync the db folder into the DB VM. This can be done using the following code and placing it inside the vagrant file.
+```python
+db.vm.synced_folder "environment/db", "/home/vagrant/environment"
+```
+Once the vagrant file has been saved you can run the command
+```python
+vagrant reload
+```
+
+Now ssh inside your controller using
+```python
+vagrant ssh aws
+```
+
+Once side the controller navigate to the ansible folders. use the path below:
+```python
+etc/ansible
+```
+
+From here you can update your playbook to account for your database setup. My current playbook can be seen below:
+
+[Click here for my playbook
+]( https://github.com/DanTeegan/Ansible/blob/master/playbook.md)
+
