@@ -1,0 +1,147 @@
+# This is a YAML file to install nginx onto oue web VM using YAML
+---
+
+- hosts: db
+
+  gather_facts: yes
+
+  become: true
+# Installing mongodb
+  tasks:
+  - name: install mongodb
+    apt: pkg=mongodb state=present
+# Removing the original mongodb.conf files
+  - name: Remove mongodb file (delete file)
+    file:
+      path: /etc/mongodb.conf
+      state: absent
+# Creating a new mongod.conf file
+  - name: Touch a file, using symbolic modes to set the permissions (equivalent to 0644)
+    file:
+      path: /etc/mongodb.conf
+      state: touch
+      mode: u=rw,g=r,o=r
+
+# Mongod.conf file
+  - name: Insert multiple lines and Backup
+    blockinfile:
+      path: /etc/mongodb.conf
+      block: |
+        # mongodb.conf
+        storage:
+          dbPath: /var/lib/mongodb
+          journal:
+            enabled: true
+        systemLog:
+          destination: file
+          logAppend: true
+          path: /var/log/mongodb/mongod.log
+
+        net:
+          port: 27017
+          bindIp: 0.0.0.0
+
+
+  - name: restart mongodb
+    become: true
+    shell: systemctl restart mongodb
+
+  - name: enable mongodb
+    become: true
+    shell: systemctl enable mongodb
+
+  - name: start mongodb
+    become: true
+    shell: systemctl start mongodb
+
+
+
+# where do we want to install
+- hosts: web
+
+# get the facts
+  gather_facts: yes
+
+# changes access to root user
+  become: true
+
+# what do we want ansible to do for us in the playbook
+# In this case our only task is to install nginx
+# Installing nginx
+  tasks:
+  - name: Install nginx
+    apt: pkg=nginx state=present
+    become_user: root
+# Removing the default file
+  - name: Remove nginx deafault file (delete file)
+    file:
+      path: /etc/nginx/sites-enabled/default
+      state: absent
+# Creating a new reverseproxy.conf file
+  - name: Touch a file, using symbolic modes to set the permissions (equivalent to 0644)
+    file:
+      path: /etc/nginx/sites-enabled/reverseproxy.conf
+      state: touch
+      mode: '666'
+
+# listening on port 80 and proxy passing to port 3000
+  - name: Insert multiple lines and Backup
+    blockinfile:
+      path: /etc/nginx/sites-enabled/reverseproxy.conf
+      block: |
+        server{
+          listen 80;
+          server_name development.local;
+          location / {
+              proxy_pass http://127.0.0.1:3000;
+          }
+        }
+# Creating a symbolic link between the reverseproxy.conf files
+  - name: Creating a symbolic link between the reverse prxy files
+    file:
+      src: /etc/nginx/sites-enabled/reverseproxy.conf
+      dest: /etc/nginx/sites-available/reverseproxy.conf
+      state: link
+# Reloading and restarting nginx
+  - name: nginx reload and restart
+    shell: |
+      sudo mkdir /etc/systemd/system/nginx.service.d
+        printf "[Service]\nExecStartPost=/bin/sleep 0.1\n" | \
+          sudo tee /etc/systemd/system/nginx.service.d/override.conf
+      sudo systemctl daemon-reload
+      sudo systemctl restart nginx
+# Installing nodejs
+  - name: Installing nodejs
+    apt: pkg=nodejs state=present
+# installing npm
+  - name: Installing NPM
+    apt: pkg=npm state=present
+
+# Downloading pm2
+  - name: Install pm2
+    npm:
+      name: pm2
+      global: yes
+# Downloading the lastest version of npm
+  - name: download latest npm
+    shell: |
+      npm install -g npm@latest
+      npm install mongoose -y
+
+# Setting up app
+  - name: set up app
+    shell: |
+      cd app/
+      npm install
+      node seeds/seed.js
+      pm2 kill
+      pm2 start app.js
+# Setting the environment variable
+    environment:
+      DB_HOST: mongodb://vagrant@192.168.33.11:27017/posts?authSource=admin
+    become_user: root
+
+
+
+
+

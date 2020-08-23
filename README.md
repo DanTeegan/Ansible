@@ -2,7 +2,7 @@
 
 Infrastructure as code – IAC
 
-### Why we use it?
+### Why should we use it?
 To help speed up the process of the configuration management Ansible or orchestration. – Terraform
 ### How does it speed up the process?
 By creating a script whether in YML file using ansible. YMAL = Another mark-up language

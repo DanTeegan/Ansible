@@ -17,65 +17,21 @@ end
 
  
 
-# MULTI SERVER/VMs environment 
-
- 
-Vagrant.configure("2") do |config|
-
-  config.vm.provider "virtualbox" do |v|
-    v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
-    v.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
-  end
 
  
 
-# creating first VM called web  
-  config.vm.define "web" do |web|
+# creating first VM called docker  
+  docker.vm.define "docker" do |docker|
     
-    web.vm.box = "bento/ubuntu-18.04"
+    docker.vm.box = "bento/ubuntu-18.04"
    # downloading ubuntu 18.04 image
 
- 
-
-    web.vm.hostname = 'web'
+    docker.vm.hostname = 'docker'
     # assigning host name to the VM
-    
-    web.vm.network :private_network, ip: "192.168.33.10"
+    docker.vm.network :private_network, ip: "192.168.33.10"
     #   assigning private IP
-    
     config.hostsupdater.aliases = ["development.web"]
     # creating a link called development.web so we can access web page with this link instread of an IP   
-    web.vm.synced_folder "app", "/home/vagrant/app"
         
     end
   
-# creating second VM called db
-  config.vm.define "db" do |db|
-    
-    db.vm.box = "bento/ubuntu-18.04"
-    
-    db.vm.hostname = 'db'
-    
-    db.vm.network :private_network, ip: "192.168.33.11"
-    
-    config.hostsupdater.aliases = ["development.db"]     
-    db.vm.synced_folder "environment/db", "/home/vagrant/environment"
-
-    end
-
- 
-
-# creating third VM called aws 
-  config.vm.define "aws" do |aws|
-    
-    aws.vm.box = "bento/ubuntu-18.04"
-    
-    aws.vm.hostname = 'aws'
-    
-    aws.vm.network :private_network, ip: "192.168.33.12"
-    
-    config.hostsupdater.aliases = ["development.aws"] 
-
-    aws.vm.synced_folder "app", "/home/vagrant/app"
-   end
-end
